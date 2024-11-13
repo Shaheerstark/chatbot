@@ -1,0 +1,197 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Case Generator</title>
+<style>
+    body {
+        font-family: 'Lato', sans-serif;
+        background: linear-gradient(135deg, #cfd9df, #e2ebf0);
+        color: #333;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        max-width: 700px;
+        margin: 50px auto;
+        padding: 30px;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+    h1 {
+        font-size: 2.5rem;
+        color: #333;
+        margin-bottom: 30px;
+    }
+    .file-upload, .code-input {
+        margin-bottom: 30px;
+    }
+    .file-upload input[type="file"] {
+        display: none;
+    }
+    .file-upload label,
+    .code-input button {
+        display: inline-block;
+        padding: 12px 40px;
+        background-color: #6c757d;
+        color: #fff;
+        font-size: 1.2rem;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .file-upload label:hover,
+    .code-input button:hover {
+        background-color: #495057;
+    }
+    .file-upload button {
+        padding: 12px 40px;
+        background-color: #007bff;
+        color: #fff;
+        font-size: 1.2rem;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    .file-upload button:hover {
+        background-color: #0056b3;
+    }
+    .file-selected {
+        margin-top: 20px;
+        font-size: 1.1rem;
+        color: #333;
+        display: none;
+    }
+    .result {
+        margin-top: 40px;
+        padding: 25px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+    }
+    .result h2 {
+        font-size: 2rem;
+        color: #333;
+        margin-bottom: 15px;
+    }
+    .result pre {
+        background-color: #e9ecef;
+        padding: 15px;
+        border-radius: 8px;
+        color: #333;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+    .code-input textarea {
+        width: 100%;
+        height: 150px;
+        padding: 15px;
+        font-size: 1.1rem;
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+        margin-bottom: 20px;
+        resize: none;
+    }
+    @media (max-width: 600px) {
+        .container {
+            padding: 20px;
+        }
+        .file-upload label,
+        .file-upload button,
+        .code-input button {
+            width: 100%;
+            text-align: center;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test Case Generator</h1>
+        <form id="upload-form">
+            <div class="file-upload">
+                <input type="file" id="file-input" accept=".cpp,.java,.py" />
+                <label for="file-input">Select Your File</label>
+                <div class="file-selected" id="file-selected-msg">File selected: <span id="file-name"></span></div>
+            </div>
+            <div class="code-input">
+                <textarea id="code-snippet" placeholder="Or type your code here..."></textarea>
+                <button type="submit">Generate</button>
+            </div>
+        </form>
+        <div class="result" id="result">
+            <!-- Results will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('file-input').addEventListener('change', function() {
+            const fileName = this.files[0] ? this.files[0].name : '';
+            const fileSelectedMsg = document.getElementById('file-selected-msg');
+            const fileNameSpan = document.getElementById('file-name');
+
+            if (fileName) {
+                fileNameSpan.textContent = fileName;
+                fileSelectedMsg.style.display = 'block';
+            } else {
+                fileSelectedMsg.style.display = 'none';
+            }
+        });
+
+        document.getElementById('upload-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const fileInput = document.getElementById('file-input');
+            const file = fileInput.files[0];
+            const codeSnippet = document.getElementById('code-snippet').value.trim();
+
+            if (!file && !codeSnippet) {
+                alert('Please select a file or type in a code snippet.');
+                return;
+            }
+
+            const formData = new FormData();
+            if (file) {
+                formData.append('file', file);
+            } else if (codeSnippet) {
+                formData.append('code_snippet', codeSnippet);
+            }
+
+            try {
+                const response = await fetch('/upload-and-generate', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const result = await response.json();
+                document.getElementById('result').innerHTML = `
+                    <h2>Generated Test Cases</h2>
+                    <p><strong>Number of test cases:</strong> ${result.num_test_cases}</p>
+                    <pre>${result.test_cases}</pre>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = `<p>Error generating test cases. Please try again.</p>`;
+            }
+        });
+    </script>
+</body>
+
+    
+    
+    
+    
+</body>
+</html>
